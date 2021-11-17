@@ -8,12 +8,13 @@ import uuid
 class Asset:
     """ Asset(s) that can be bought and sold by the traders. The asset will be able to be generated, evolved, and traded."""
 
-    def __init__(self, ma_short=10, ma_long=50):
+    def __init__(self, true_price=100, trading_price=100, ma_short=10, ma_long=50, period_growth=0.2, history_length=100):
         """Initalise asset with 200 periods of trading history (generated randomly) and with starting price as 100."""
         self.id = uuid.uuid4()
-        self.true_price = 100
-        self.trading_price = 100
-        self.period_growth = 0.2
+        self.true_price = true_price
+        self.trading_price = trading_price
+        self.period_growth = period_growth
+        self.history_length = history_length
         self.history_true = Asset.history(self, traded=False)
         self.history_traded = Asset.history(self, traded=True)
         if ma_short:
@@ -22,10 +23,10 @@ class Asset:
             self.ma_long = Asset.ma_history(self, self.history_traded, ma_long)
 
 
-    def history(self, end_price=100, length=100, traded=True):
+    def history(self, end_price=100, traded=True):
         """Return a randomly generated 1D numpy array ending in the desired end price with the desired length."""
         history = list([end_price])
-        for s in range(length - 1):
+        for s in range(self.history_length - 1):
             if traded:
                 history.append(history[-1] + np.random.normal(-0.1, 1, None))
             else:
