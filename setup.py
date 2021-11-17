@@ -43,26 +43,37 @@ class Asset:
         np.append(self.history_traded, self.traded_price)
 
     def ma_history(self, x, w):
+        """Return a numpy array of moving averages of the supplied array. For the intial values where there is an incomplete window, the values of the supplied array are used."""
         ma = np.convolve(x, np.ones(w), 'valid') / w
         addition = x[:w-1]
         total = np.append(addition, ma)
         return total
 
-    def update_ma(self, x, w):
-        """ Takes """
+    def update_ma(self, x, ma, w):
+        """Updates an array of moving averages with the final value (to be updated each period)."""
+        new_val = np.sum(x[-w:]) / w
+        new_ma = np.append(ma, new_val)
+        return new_ma
+
+def sigmoid(x): #Used to transform inputs in range (-inf,inf) to (0,1) for probabilities
+    return 1/(1 + np.exp(-x))
 
 class Trader:
     """A base class from which traders can be designed. Contains the basic framework from which trader subclasses of unique strategies can be generated.
     Each subclass of traders has its own strategies that are used to determine trading decisions in any given period."""
 
-    def __init__(self, id, money, stock):
-        self.id = id
+    def __init__(self, money, stock):
+        self.id = uuid.uuid4()
         self.money = money
         self.stock = stock
         self.account = self.money + self.stock*100 #Starting trading price is 100
-        self.a = np.random.normal(0.44, 0.05, None) #alpha, beta and gamma values for prospect theory functions, some slight variation across traders
+        self.a = np.random.normal(0.44, 0.05, None) #alpha, beta, lambda and gamma values for prospect theory functions, some slight variation across traders
         self.b = np.random.normal(0.49, 0.05, None)
         self.l = np.random.uniform(1.03, 1.06, None)
+        self.g = np.random.uniform(0.4, 0.6, None)
+        self.active = np.random.uniform(0.2, 1, None) #Rate of trading activity in the market, i.e. how often they enter the market
+        self.faith = np.random.uniform() #The proclivity of the agent to stick to its current strategy
+
 
     def place_bid(self, bid_price, quantity):
         return (quantity, bid_price, self.id, True)
@@ -71,18 +82,14 @@ class Trader:
         return (quantity, ask_price, self.id, False)
 
     def value(self, x):
-        self.x = x
-        self.a = 0.44
-        self.b = 0.49
-        self.l = 1.06
-        if self.x >= 0:
-            self.val = self.x**self.a
-        elif self.x < 0:
-            self.val = -self.l*(-self.x)**self.b
+        if x >= 0:
+            self.val = x**self.a
+        elif x < 0:
+            self.val = -self.l*(-x)**self.b
         return self.val
 
-    def weighting(self, x):
-        return x
+    def weighting(self, p):
+        return (p**self.g)/((p**self.g+(1-p)**self.g)**(1/self.g))
 
 class Arbitrageur(Trader):
     """Type of trader who relies on the true price to make trading decisions."""
@@ -97,10 +104,11 @@ class NoiseTrader(Trader):
     """Type of trader who has no set strategy - buys and sells randomly to provide volume in the market."""
 
 print("Hello!")
-a1 = Asset(ma_short=20, history_length=200)
-
+a1 = Asset(ma_short=15, ma_long=50, history_length=200)
+print(a1.id)
 
 plt.plot(a1.history_traded)
 plt.plot(a1.history_true)
 plt.plot(a1.ma_short)
+plt.plot(a1.ma_long)
 plt.show()
