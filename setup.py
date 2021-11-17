@@ -97,13 +97,10 @@ class NoiseTrader(Trader):
     """Type of trader who has no set strategy - buys and sells randomly to provide volume in the market."""
 
 print("Hello!")
-a1 = Asset(1)
-a1_10ma = a1.ma_history(a1.history_traded, 10)
-print("Length of trading history: ", a1.history_traded.size)
-print("Length of true history: ", a1.history_true.size)
-print(a1_10ma.size)
+a1 = Asset(ma_short=20, history_length=200)
+
 
 plt.plot(a1.history_traded)
 plt.plot(a1.history_true)
-plt.plot(a1_10ma)
+plt.plot(a1.ma_short)
 plt.show()
