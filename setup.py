@@ -13,6 +13,7 @@ class Asset:
         self.id = uuid.uuid4()
         self.true_price = 100
         self.trading_price = 100
+        self.period_growth = 0.2
         self.history_true = Asset.history(self, traded=False)
         self.history_traded = Asset.history(self, traded=True)
         if ma_short:
@@ -28,12 +29,12 @@ class Asset:
             if traded:
                 history.append(history[-1] + np.random.normal(-0.1, 1, None))
             else:
-                history.append(history[-1] - 0.2 + np.random.normal(0, 0.1, None))
+                history.append(history[-1] - self.period_growth + np.random.normal(0, 0.1, None))
         history.reverse()
         return np.array(history)
 
     def update_true(self):
-        self.true_price = self.history_true[-1] + 0.5 +np.random.normal(0, np.random.uniform(), None)
+        self.true_price = self.history_true[-1] + self.period_growth +np.random.normal(0, np.random.uniform(), None)
         np.append(self.history_true, self.true_price)
 
     def update_traded(self, trading_price):
