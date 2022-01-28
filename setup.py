@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import uuid
+import math
 #import pandas as pd
 #import math
 #import csv
@@ -28,7 +29,7 @@ class Asset:
         history = list([end_price])
         for s in range(self.history_length - 1):
             if traded:
-                history.append(history[-1] + np.random.normal(-0.1, 1, None))
+                history.append(history[-1] + np.random.normal(-self.period_growth, 1, None))
             else:
                 history.append(history[-1] - self.period_growth + np.random.normal(0, 0.1, None))
         history.reverse()
@@ -60,7 +61,7 @@ def sigmoid(x): #Used to transform inputs in range (-inf,inf) to (0,1) for proba
 
 class Trader:
     """A base class from which traders can be designed. Contains the basic framework from which trader subclasses of unique strategies can be generated.
-    Each subclass of traders has its own strategies that are used to determine trading decisions in any given period."""
+       Each subclass of traders has its own strategies that are used to determine trading decisions in any given period."""
 
     def __init__(self, money, stock):
         self.id = uuid.uuid4()
@@ -76,10 +77,22 @@ class Trader:
 
 
     def place_bid(self, bid_price, quantity):
-        return (quantity, bid_price, self.id, True)
+        """Takes quantities and bid prices and creates orders that the market can accept."""
+        self.bid_price = bid_price
+        if bid_price * quantity <= self.money:
+            self.quantity = math.floor(quantity)
+        else:
+            self.quantity = math.floor(self.money / self.bid_price)
+        return (self.quantity, self.bid_price, self.id, True)
 
     def place_ask(self, ask_price, quantity):
-        return (quantity, ask_price, self.id, False)
+        """Takes quantities and bid prices and creates orders that the market can accept."""
+        self.ask_price = ask_price
+        if quantity > self.stock:
+            self.quantity = self.stock
+        else:
+            self.quantity = round(quantity)
+        return (self.quantity, ask_price, self.id, False)
 
     def value(self, x):
         if x >= 0:
@@ -107,8 +120,9 @@ print("Hello!")
 a1 = Asset(ma_short=15, ma_long=50, history_length=200)
 print(a1.id)
 
-plt.plot(a1.history_traded)
-plt.plot(a1.history_true)
-plt.plot(a1.ma_short)
-plt.plot(a1.ma_long)
+plt.plot(a1.history_traded, label="Trading Price")
+plt.plot(a1.history_true, label="True Price")
+plt.plot(a1.ma_short, label="15 Period MA")
+plt.plot(a1.ma_long, label="50 Period MA")
+plt.legend()
 plt.show()
