@@ -1,0 +1,3 @@
+TO DO:
+1. Change asset characteristics - defining moving averages and other such statistics should be a part of the strategy not a part of the asset itself
+2. Change trader types to trader strategies, traders should just be generalised objects that can take on different strategies
